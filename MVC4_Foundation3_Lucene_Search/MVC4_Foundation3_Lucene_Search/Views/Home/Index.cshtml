@@ -1,0 +1,311 @@
+﻿@*@using Novartis.mFramework.Utilities
+@using Novartis.mFramework.UIComponents
+*@
+
+@model MVC4_Foundation3_Lucene_Search.Models.IndexingModel
+@{
+    ViewBag.Title = "Index";
+}
+<script type="text/javascript">
+
+    function checkSearch() {
+        debugger;
+        var $j = jQuery.noConflict();
+        var seachText = document.getElementById("SearchValue");
+        if (seachText.value == "") {
+            alert("Please Enter the text to search")
+            tableview.setAttribute("style", "display:none;");
+            return false;
+        }
+        else {
+            tableview.removeAttribute("style");
+
+        }
+        return true;
+    }
+    function advanceSearch() {
+        $('#divsimplesearch').hide();
+        $('#divadvancesearch').show();
+    }
+    function simpleSearch() {
+        $('#divadvancesearch').hide();
+        $('#divsimplesearch').show();
+    }
+    window.onload = function () {
+        // tableheadrow.removeAttribute("style");
+        //  tableheadrow.setAttribute("style", "display:none;");
+
+        $('#divadvancesearch').hide();
+        // tableview.setAttribute("style", "display:none;");
+    };
+
+</script>
+
+
+@*Code for rating  starts here*@
+
+<script src="../../Scripts/underscore-min.js" type="text/javascript"></script>
+<script src="../../Scripts/jquery.min.js" type="text/javascript"></script>
+<link href="../../Content/recent_reviews.css" rel="stylesheet" type="text/css" />
+
+
+<script type="text/javascript">
+ /*   // API Call configuration
+    var api_server = "http://reviews.apitestcustomer.bazaarvoice.com/bvstaging/data";
+   // var api_server="http://stg.api.bazaarvoice.com/data/";//reviews.json?apiversion=5.2&passkey=kuy3zj9pr3n7i0wxajrzj04xo&filter=id:192612";
+   var api_key = "kuy3zj9pr3n7i0wxajrzj04xo";
+    // var api_key = "mdw2h5jg9pwkxyg8zvfqx4fg";
+   // var api_server = document.getElementById("hndvalue").value;
+   // alert(api_server);
+
+    var num_items = 3;*/
+  </script> 
+<!-- Template for displaying the module.  This is a Resig Microtemplate-style of template. -->
+<script type="text/html" id="module_template">
+  <% _.each(Results, function(Review) { %>
+    <% var ReviewAuthor = Includes.Authors[Review.AuthorId]; %>
+    <% var ReviewProduct = Includes.Products[Review.ProductId]; %>
+
+    <div class="review">
+      <div class="review_body triangle-border">
+        <span class="rating"><span class="ratingHighlight" style="width:<%=100*(Review.Rating/5)%>%"></span></span>
+        <h3> <%=Review.Title%> </h3>
+        <p class="body"> <%=truncate(Review.ReviewText, 200)%> </p>
+      </div>
+      <a href="<%=ReviewProduct.ProductPageUrl%>" target="_blank">
+        <img class="picture_right" height="60px" src="<%=ReviewProduct.ImageUrl%>" onerror="this.src='no-image-100px.gif';" />
+      </a>
+      <% var authorName = "Anonymous"; 
+      if(ReviewAuthor && ReviewAuthor.DisplayName) {
+        authorName = ReviewAuthor.DisplayName;
+      }
+      %>
+      <div class="author"> <%= authorName %> </div>
+      <% if(!ReviewProduct.ImageUrl) { ReviewProduct.ImageUrl = "no-image-100px.gif"; } %>
+      <div class="product_name">
+        Talking about <a href="<%=ReviewProduct.ProductPageUrl%>" target="_blank"><%=ReviewProduct.Name%></a>
+      </div>
+    </div>
+  <% }); %>			
+</script>
+<script type="text/html" id="module_simple">
+  <%  _.each(Results, function(Review) { %>
+    <div class="review">
+      <h2><%=Review.Title%></h2>
+      <h5>Rating: <%=Review.Rating%> out of 5</h5>
+      <p><%=Review.ReviewText%></p>
+    </div>
+  <% }); %>			
+</script>
+
+<!-- Script Section -->
+<script type="text/javascript">
+    /*$(document).ready(function() {
+    $.ajaxSetup({ cache: true });
+    $.getJSON(api_server+"/reviews.json?callback=?", 
+    "apiversion=4.8&include=products,authors&filter=RatingsOnly:false&filter=DisplayLocale:en_US&passkey=" + api_key + "&limit=" + num_items,
+    function(json){
+    _.each(json['Results'], function(review) {
+    $("#module").append("<h1>"+review['Title']+"</h1>");
+    });
+    });
+    });*/
+
+    $(document).ready(function () {
+        // Disable cache-busting parameter names because we want to allow for API results to be cached
+        $.ajaxSetup({ cache: true });
+        // Make the call to the API using the base URL and key we set at the top of the file
+        //        $.getJSON(api_server + "/reviews.json?callback=?",
+        //      "apiversion=4.9&include=products,authors&filter=isRatingsOnly:false&filter=DisplayLocale:en_US&passkey=" + api_key + "&limit=" + num_items,
+        //      
+        //  $.getJSON(api_server + "&limit=" + num_items,
+
+        var json11 = "@Model.api_URL";
+        var jsonfilter = "@Model.api_filter";
+
+        var decoded = jsonfilter.replace(/&amp;/g, '&');
+        jsonfilter = decoded;
+
+        //here getting json object
+        $.getJSON(json11,
+        jsonfilter,
+      function (json1) {
+          // Render the template into a variable
+          var output = _.template(document.getElementById("module_template").innerHTML, json1)
+          $("#module").append(output);
+      });
+    });
+
+   
+
+ 
+
+    // Truncate a string on word boundires rather than character boundries. 
+    // Dustin Mihalik
+    (function () {
+        this.truncate = function truncate(str, length) {
+            var trunc = str;
+            if (trunc && trunc.length > length) {
+                /* Truncate the content of the P, then go back to the end of the previous word. */
+                trunc = trunc.substring(0, length);
+                trunc = trunc.replace(/\w+$/, '');
+                return trunc + "...";
+            } else {
+                return trunc;
+            }
+        };
+    })();
+</script>
+
+
+
+@*Code for rating ends here*@
+<div id="showcase">
+    <div class="row">
+        <div class="twelve columns">
+            @using (Html.BeginForm("CreateIndex", "Home", FormMethod.Post))
+            { 
+                @Html.ValidationSummary(true, "Search was unsuccessful. Please correct the errors and try again.")        
+                <fieldset>
+                    <legend>Index</legend>First Click to Index: &nbsp;&nbsp;
+                    <input id="btnCreateIndex" class="small button" type="submit" value="Create Index" />
+                </fieldset>  
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="twelve columns">
+            @using (Html.BeginForm("Search", "Home", FormMethod.Post))
+            { 
+@* @Html.ValidationSummary(true, "Search was unsuccessful. Please correct the errors and try again.")  *@      
+                <fieldset>
+                    <legend>Simple Search</legend>
+                    <div style="margin-bottom: 20px; background-color: #D8D1CA; padding: 15px;">
+                        @* <input id="lnkbtnSimpleSearch" class="small button" type="submit" value="Simple Search" />*@
+                        <label id="lnkbtnSimpleSearch" onclick="simpleSearch();" style="background-color: #FF6600;
+                            color: White; padding-top: 5px; padding-bottom: 5px; padding-left: 5px;" for="male">
+                            <u>Simple Search</u></label>
+                        <div id="divsimplesearch">
+                            <div id="idSimple" runat="server">
+                                Enter the text to search &nbsp;&nbsp; @Html.TextBoxFor(m => m.SearchValue)
+                                &nbsp;&nbsp;
+                                @Html.DropDownListFor(m => m.SimpleLanguageList, Model.SimpleLanguageList, "Any Language")
+                                &nbsp;&nbsp;
+                                <input id="btnSearch" class="small button" type="submit" value="Search" onclick="javascript:return checkSearch();" />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>  
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="twelve columns">
+            @using (Html.BeginForm("advanceSearch", "Home", FormMethod.Post))
+            { 
+@* @Html.ValidationSummary(true, "Search was unsuccessful. Please correct the errors and try again.")     *@   
+                <fieldset>
+                    <legend>Advanced Search</legend>
+                    <div style="margin-bottom: 20px; background-color: #D8D1CA; padding: 15px;">
+                        @*<input id="lnkbtnAdvanceSearch" class="small button" type="submit" value="Advance Search" /> *@
+                        <label id="lnkbtnAdvanceSearch" onclick="advanceSearch();" style="background-color: #FF6600;
+                            color: White; padding-top: 5px; padding-bottom: 5px; padding-left: 5px;" for="male">
+                            <u>Advance Search</u></label>
+                        <div id="divadvancesearch">
+                            <div id="idAdvance">
+                                <label id="lblFindResult" style="font-weight: bold;" for="male">
+                                    Find Results</label>
+                                with <strong>all</strong> of the words &nbsp;&nbsp;@Html.TextBoxFor(m => m.wiithallwords)&nbsp;&nbsp;
+                                with the <strong>exact phrase</strong>
+                                @Html.TextBoxFor(m => m.exactphrase)
+                                with <strong>at least one</strong> of the words
+                                @Html.TextBoxFor(m => m.leastWords)
+                                <strong>without</strong> the words
+                                @Html.TextBoxFor(m => m.withoutWords)
+                                <strong>Language</strong> @*  @Html.DropDownListFor(m=>m.categories.CategoryID,Model.categories.CategoryList,"--Select one--")*@
+                                @Html.DropDownListFor(m => m.AdvanceLanguageList, Model.AdvanceLanguageList, "Any Language")
+                                &nbsp;&nbsp;
+                                <input id="btnWordSearch" class="small button" type="submit" value="Search" />
+                            </div>
+                        </div>
+                </fieldset>  
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="twelve columns">
+        <div>
+            <div id="tableview">
+                @* <fieldset>
+                    <legend>Searched Results</legend>*@
+                <table style="width: 100%;">
+                    <tr id="tableheadrow">
+                        <th>
+                            PageName
+                        </th>
+                        <th>
+                            Tag
+                        </th>
+                        <th>
+                            ContentText
+                        </th>
+                        <th>
+                            Priority
+                        </th>
+                        <th>
+                            Language
+                        </th>
+                        @*   <td>
+                                PageName
+                            </td>
+                            <td>
+                                Tag
+                            </td>
+                            <td>
+                                ContentText
+                            </td>
+                            <td>
+                                Priority
+                            </td>*@
+                    </tr>
+                    @foreach (System.Data.DataRow dr in ViewBag.AuthorList.Rows)
+                    {
+                        if (dr != null)
+                        {
+                        <tr>
+                            <td>
+                                @dr["PageName"].ToString()
+                            </td>
+                            <td>
+                                @dr["Tag"].ToString()
+                            </td>
+                            <td>
+                                @dr["ContentText"].ToString()
+                            </td>
+                            <td>
+                                @dr["Priority"].ToString()
+                            </td>
+                            <td>
+                                @dr["Language"].ToString()
+                            </td>
+                        </tr>
+                        }
+
+                    }
+                </table>
+                @* </fieldset>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+ @* code for bazzer voice started *@
+ <div id="module">
+</div>
+<!-- Placeholder for widget  -->
+
+
+@* code for bazzer voice ended *@
